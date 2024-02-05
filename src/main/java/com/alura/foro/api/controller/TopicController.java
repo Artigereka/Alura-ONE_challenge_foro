@@ -8,11 +8,12 @@ import com.alura.foro.api.domain.topic.TopicRepository;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.List;
@@ -29,7 +30,7 @@ public class TopicController {
 
     @PostMapping
     @Transactional
-    public ResponseEntity createTopic(@RequestBody @Valid CreateTopicDTO createTopicDTO, UriComponentsBuilder uribBuilder){
+    public ResponseEntity<TopicDetailsDTO> createTopic(@RequestBody @Valid CreateTopicDTO createTopicDTO, UriComponentsBuilder uribBuilder){
 
         validTopic.forEach(v -> v.isDuplicated(createTopicDTO));
         var topic = new Topic(createTopicDTO);
@@ -37,6 +38,14 @@ public class TopicController {
 
         var uri = uribBuilder.path("/topics/{id}").buildAndExpand(topic.getId()).toUri();
         return ResponseEntity.created(uri).body(new TopicDetailsDTO(topic));
+
+    }
+
+    @GetMapping("/all")
+    public ResponseEntity<Page<TopicDetailsDTO>> readAllTopics(
+            @PageableDefault(size = 5, direction = Sort.Direction.DESC) Pageable pagination){
+
+        return ResponseEntity.ok(topicRepository.findAll(pagination).map(TopicDetailsDTO::new));
 
     }
 
