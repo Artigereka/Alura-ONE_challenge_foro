@@ -1,10 +1,7 @@
 package com.alura.foro.api.controller;
 
-import com.alura.foro.api.domain.topic.CreateTopicDTO;
-import com.alura.foro.api.domain.topic.Topic;
+import com.alura.foro.api.domain.topic.*;
 import com.alura.foro.api.domain.topic.validators.create.TopicValidService;
-import com.alura.foro.api.domain.topic.TopicDetailsDTO;
-import com.alura.foro.api.domain.topic.TopicRepository;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,6 +43,54 @@ public class TopicController {
             @PageableDefault(size = 5, direction = Sort.Direction.DESC) Pageable pagination){
 
         return ResponseEntity.ok(topicRepository.findAll(pagination).map(TopicDetailsDTO::new));
+
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<TopicDetailsDTO> readOneTopic(@PathVariable Long id){
+
+        Topic topic = topicRepository.getReferenceById(id);
+
+        var topicData = new TopicDetailsDTO(
+                topic.getId(),
+                topic.getTitle(),
+                topic.getBody(),
+                topic.getAuthor(),
+                topic.getCourse(),
+                topic.getStatus(),
+                topic.getCreationDate(),
+                topic.getLastUpdated()
+        );
+
+        return  ResponseEntity.ok(topicData);
+
+    }
+
+    @GetMapping
+    public ResponseEntity<Page<TopicDetailsDTO>> readNonArchivedTopics(@PageableDefault(
+            size = 5, sort = {"id"}) Pageable pagination) {
+
+        var page = topicRepository.findAllByStatus(TopicStatus.ARCHIVED,pagination).map(TopicDetailsDTO::new);
+        return ResponseEntity.ok(page);
+
+    }
+
+    @PutMapping
+    @Transactional
+    public ResponseEntity updateTopic(@RequestBody @Valid UpdateTopicDTO updateTopicDTO) {
+        Topic topic = topicRepository.getReferenceById(updateTopicDTO.id());
+        topic.updateTopic(updateTopicDTO);
+        var topicData = new TopicDetailsDTO(
+                topic.getId(),
+                topic.getTitle(),
+                topic.getBody(),
+                topic.getAuthor(),
+                topic.getCourse(),
+                topic.getStatus(),
+                topic.getCreationDate(),
+                topic.getLastUpdated()
+        );
+        return ResponseEntity.ok(topicData);
 
     }
 

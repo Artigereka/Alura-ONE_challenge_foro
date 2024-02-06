@@ -1,14 +1,12 @@
 package com.alura.foro.api.domain.topic;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
 
 @Getter
 @NoArgsConstructor
@@ -25,12 +23,43 @@ public class Topic {
     private String body;
     private Long author;
     private Long course;
+    @Enumerated(EnumType.STRING)
+    private TopicStatus status;
+    private LocalDateTime creationDate;
+    private LocalDateTime lastUpdated;
 
     public Topic(CreateTopicDTO createTopicDTO){
         this.title = createTopicDTO.title();
         this.body = createTopicDTO.body();
         this.author = createTopicDTO.author();
         this.course = createTopicDTO.course();
+        this.status = TopicStatus.OPEN;
+        this.creationDate = LocalDateTime.now();
+        this.lastUpdated = LocalDateTime.now();
+    }
+
+    public void updateTopic(UpdateTopicDTO updateTopicDTO) {
+        if (updateTopicDTO.title() != null) {
+            this.title = updateTopicDTO.title();
+        }
+        if (updateTopicDTO.body() != null) {
+            this.body = updateTopicDTO.body();
+        }
+        if (updateTopicDTO.status() != null) {
+            this.status = updateTopicDTO.status();
+        }
+        if (updateTopicDTO.course() != null) {
+            this.course = updateTopicDTO.course();
+        }
+        this.lastUpdated = LocalDateTime.now();
+    }
+
+    public void closeTopic() {
+        this.status = TopicStatus.CLOSED;
+    }
+
+    public void archiveTopic() {
+        this.status = TopicStatus.ARCHIVED;
     }
 
 }
