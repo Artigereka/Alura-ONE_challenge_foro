@@ -1,6 +1,11 @@
 package com.alura.foro.api.controller;
 
-import com.alura.foro.api.domain.topic.*;
+import com.alura.foro.api.domain.topic.CreateTopicDTO;
+import com.alura.foro.api.domain.topic.TopicStatus;
+import com.alura.foro.api.domain.topic.Topic;
+import com.alura.foro.api.domain.topic.TopicDetailsDTO;
+import com.alura.foro.api.domain.topic.TopicRepository;
+import com.alura.foro.api.domain.topic.UpdateTopicDTO;
 import com.alura.foro.api.domain.topic.validators.create.TopicValidService;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
@@ -10,7 +15,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.List;
@@ -75,10 +87,11 @@ public class TopicController {
 
     }
 
-    @PutMapping
+    @PutMapping("/{id}")
     @Transactional
-    public ResponseEntity updateTopic(@RequestBody @Valid UpdateTopicDTO updateTopicDTO) {
-        Topic topic = topicRepository.getReferenceById(updateTopicDTO.id());
+    public ResponseEntity<TopicDetailsDTO> updateTopic(@RequestBody @Valid UpdateTopicDTO updateTopicDTO,
+                                                       @PathVariable Long id) {
+        Topic topic = topicRepository.getReferenceById(id);
         topic.updateTopic(updateTopicDTO);
         var topicData = new TopicDetailsDTO(
                 topic.getId(),
@@ -92,6 +105,14 @@ public class TopicController {
         );
         return ResponseEntity.ok(topicData);
 
+    }
+
+    @DeleteMapping("/{id}")
+    @Transactional
+    public ResponseEntity<?> deleteTopic(@PathVariable Long id) {
+        Topic topic = topicRepository.getReferenceById(id);
+        topic.deleteTopic();
+        return ResponseEntity.noContent().build();
     }
 
 }

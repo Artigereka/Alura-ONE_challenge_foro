@@ -54,12 +54,8 @@ public class Topic {
         this.lastUpdated = LocalDateTime.now();
     }
 
-    public void closeTopic() {
-        this.status = TopicStatus.CLOSED;
-    }
-
-    public void archiveTopic() {
-        this.status = TopicStatus.ARCHIVED;
+    public void deleteTopic() {
+        this.status = TopicStatus.DELETED;
     }
 
 }
