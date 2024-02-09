@@ -12,6 +12,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
@@ -39,13 +40,13 @@ public class TopicController {
 
     @PostMapping
     @Transactional
-    public ResponseEntity<TopicDetailsDTO> createTopic(@RequestBody @Valid CreateTopicDTO createTopicDTO, UriComponentsBuilder uribBuilder){
+    public ResponseEntity<TopicDetailsDTO> createTopic(@RequestBody @Valid CreateTopicDTO createTopicDTO, UriComponentsBuilder uriBuilder){
 
         validTopic.forEach(v -> v.isDuplicated(createTopicDTO));
         var topic = new Topic(createTopicDTO);
         topicRepository.save(topic);
 
-        var uri = uribBuilder.path("/topics/{id}").buildAndExpand(topic.getId()).toUri();
+        var uri = uriBuilder.path("/topics/{id}").buildAndExpand(topic.getId()).toUri();
         return ResponseEntity.created(uri).body(new TopicDetailsDTO(topic));
 
     }
@@ -79,10 +80,9 @@ public class TopicController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<TopicDetailsDTO>> readNonArchivedTopics(@PageableDefault(
-            size = 5, sort = {"id"}) Pageable pagination) {
-
-        var page = topicRepository.findAllByStatus(TopicStatus.ARCHIVED,pagination).map(TopicDetailsDTO::new);
+    public ResponseEntity<Page<TopicDetailsDTO>> readNonDeletedTopics(@PageableDefault(size = 5, sort = {"lastUpdated"},
+            direction = Direction.DESC) Pageable pagination) {
+        var page = topicRepository.findAllByStatus(TopicStatus.DELETED,pagination).map(TopicDetailsDTO::new);
         return ResponseEntity.ok(page);
 
     }
