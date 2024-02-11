@@ -7,6 +7,7 @@ import com.alura.foro.api.domain.topic.TopicDetailsDTO;
 import com.alura.foro.api.domain.topic.TopicRepository;
 import com.alura.foro.api.domain.topic.UpdateTopicDTO;
 import com.alura.foro.api.domain.topic.validators.create.TopicValidService;
+import com.alura.foro.api.domain.user.UserRepository;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +37,9 @@ public class TopicController {
     private TopicRepository topicRepository;
 
     @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
     List<TopicValidService> validTopic;
 
     @PostMapping
@@ -43,7 +47,8 @@ public class TopicController {
     public ResponseEntity<TopicDetailsDTO> createTopic(@RequestBody @Valid CreateTopicDTO createTopicDTO, UriComponentsBuilder uriBuilder){
 
         validTopic.forEach(v -> v.isDuplicated(createTopicDTO));
-        var topic = new Topic(createTopicDTO);
+        var user = userRepository.findById(createTopicDTO.userID()).get();
+        var topic = new Topic(createTopicDTO, user);
         topicRepository.save(topic);
 
         var uri = uriBuilder.path("/topics/{id}").buildAndExpand(topic.getId()).toUri();
@@ -55,7 +60,8 @@ public class TopicController {
     public ResponseEntity<Page<TopicDetailsDTO>> readAllTopics(
             @PageableDefault(size = 5, direction = Sort.Direction.DESC) Pageable pagination){
 
-        return ResponseEntity.ok(topicRepository.findAll(pagination).map(TopicDetailsDTO::new));
+        var page = topicRepository.findAll(pagination).map(TopicDetailsDTO::new);
+        return ResponseEntity.ok(page);
 
     }
 
@@ -68,7 +74,7 @@ public class TopicController {
                 topic.getId(),
                 topic.getTitle(),
                 topic.getBody(),
-                topic.getAuthor(),
+                topic.getUser().getUsername(),
                 topic.getCourse(),
                 topic.getStatus(),
                 topic.getCreationDate(),
@@ -97,7 +103,7 @@ public class TopicController {
                 topic.getId(),
                 topic.getTitle(),
                 topic.getBody(),
-                topic.getAuthor(),
+                topic.getUser().getUsername(),
                 topic.getCourse(),
                 topic.getStatus(),
                 topic.getCreationDate(),

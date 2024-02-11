@@ -15,10 +15,12 @@ import com.alura.foro.api.domain.user.UserAuthenticationDTO;
 import com.alura.foro.api.infra.security.JWTTokenDTO;
 import com.alura.foro.api.infra.security.TokenService;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/login")
+@Tag(name = "Authentication", description = "Gets the designated user's token for endpoint access")
 public class AuthenticationController {
 
     @Autowired

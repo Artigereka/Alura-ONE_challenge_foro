@@ -1,6 +1,16 @@
 package com.alura.foro.api.domain.topic;
 
-import jakarta.persistence.*;
+import com.alura.foro.api.domain.user.User;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -21,17 +31,19 @@ public class Topic {
     private Long id;
     private String title;
     private String body;
-    private Long author;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
     private Long course;
     @Enumerated(EnumType.STRING)
     private TopicStatus status;
     private LocalDateTime creationDate;
     private LocalDateTime lastUpdated;
 
-    public Topic(CreateTopicDTO createTopicDTO){
+    public Topic(CreateTopicDTO createTopicDTO, User user){
         this.title = createTopicDTO.title();
         this.body = createTopicDTO.body();
-        this.author = createTopicDTO.author();
+        this.user = user;
         this.course = createTopicDTO.course();
         this.status = TopicStatus.OPEN;
         this.creationDate = LocalDateTime.now();

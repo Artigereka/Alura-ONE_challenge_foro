@@ -16,6 +16,7 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 @Service
 public class TokenService {
 
+    @Value("${api.security.secret}")
     private String apiSecret;
 
     public String generateToken(User user) {
@@ -57,7 +58,7 @@ public class TokenService {
     }
 
     private Instant generateExpiringDate() {
-        return LocalDateTime.now().plusHours(2).toInstant(ZoneOffset.of("-03:00"));
+        return LocalDateTime.now().plusHours(2).toInstant(ZoneOffset.of("-05:00"));
     }
 
 }
