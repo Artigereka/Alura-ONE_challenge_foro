@@ -1,13 +1,40 @@
 package com.alura.foro.api.infra.errors;
 
+import jakarta.persistence.EntityNotFoundException;
+
+import java.util.List;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import jakarta.validation.ValidationException;
 
 @RestControllerAdvice
 public class ErrorsTreatment {
+
+    @ExceptionHandler(EntityNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ResponseEntity<?> error404Handler(){
+        return ResponseEntity.notFound().build();
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<List<?>> error400Handler(MethodArgumentNotValidException e){
+        var error = e.getFieldErrors().stream().map(DataErrorsValidation::new).toList();
+        return ResponseEntity.badRequest().body(error);
+    }
+
+    private record DataErrorsValidation(String field, String error){
+        public DataErrorsValidation(FieldError error) {
+            this(error.getField(), error.getDefaultMessage());
+        }
+    }
 
     @ExceptionHandler(IntegrityValidation.class)
     public ResponseEntity<String> errorHandlerIntegrityValidation(Exception e) {
