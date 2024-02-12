@@ -8,6 +8,8 @@ import com.alura.foro.api.domain.topic.TopicRepository;
 import com.alura.foro.api.domain.topic.UpdateTopicDTO;
 import com.alura.foro.api.domain.topic.validators.create.TopicValidService;
 import com.alura.foro.api.domain.user.UserRepository;
+import com.alura.foro.api.domain.course.Course;
+import com.alura.foro.api.domain.course.CourseRepository;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +42,9 @@ public class TopicController {
     private UserRepository userRepository;
 
     @Autowired
+    private CourseRepository courseRepository;
+
+    @Autowired
     List<TopicValidService> validTopic;
 
     @PostMapping
@@ -48,7 +53,8 @@ public class TopicController {
 
         validTopic.forEach(v -> v.isDuplicated(createTopicDTO));
         var user = userRepository.findById(createTopicDTO.userID()).get();
-        var topic = new Topic(createTopicDTO, user);
+        var course = courseRepository.findById(createTopicDTO.courseID()).get();
+        var topic = new Topic(createTopicDTO, user, course);
         topicRepository.save(topic);
 
         var uri = uriBuilder.path("/topics/{id}").buildAndExpand(topic.getId()).toUri();
@@ -75,7 +81,8 @@ public class TopicController {
                 topic.getTitle(),
                 topic.getBody(),
                 topic.getUser().getUsername(),
-                topic.getCourse(),
+                topic.getCourse().getName(),
+                topic.getCourse().getCategory(),
                 topic.getStatus(),
                 topic.getCreationDate(),
                 topic.getLastUpdated()
@@ -104,7 +111,8 @@ public class TopicController {
                 topic.getTitle(),
                 topic.getBody(),
                 topic.getUser().getUsername(),
-                topic.getCourse(),
+                topic.getCourse().getName(),
+                topic.getCourse().getCategory(),
                 topic.getStatus(),
                 topic.getCreationDate(),
                 topic.getLastUpdated()

@@ -2,12 +2,15 @@ package com.alura.foro.api.domain.topic;
 
 import java.time.LocalDateTime;
 
+import com.alura.foro.api.domain.course.Category;
+
 public record TopicDetailsDTO(
         Long id,
         String title,
         String body,
         String user,
-        Long course,
+        String course,
+        Category courseCategory,
         TopicStatus status,
         LocalDateTime creationDate,
         LocalDateTime lastUpdated) {
@@ -18,7 +21,8 @@ public record TopicDetailsDTO(
                 topic.getTitle(),
                 topic.getBody(),
                 topic.getUser().getUsername(),
-                topic.getCourse(),
+                topic.getCourse().getName(),
+                topic.getCourse().getCategory(),
                 topic.getStatus(),
                 topic.getCreationDate(),
                 topic.getLastUpdated());

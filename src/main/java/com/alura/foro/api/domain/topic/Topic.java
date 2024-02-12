@@ -1,6 +1,7 @@
 package com.alura.foro.api.domain.topic;
 
 import com.alura.foro.api.domain.user.User;
+import com.alura.foro.api.domain.course.Course;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -31,20 +32,26 @@ public class Topic {
     private Long id;
     private String title;
     private String body;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
-    private Long course;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "course_id")
+    private Course course;
+
     @Enumerated(EnumType.STRING)
     private TopicStatus status;
+
     private LocalDateTime creationDate;
     private LocalDateTime lastUpdated;
 
-    public Topic(CreateTopicDTO createTopicDTO, User user){
+    public Topic(CreateTopicDTO createTopicDTO, User user, Course course){
         this.title = createTopicDTO.title();
         this.body = createTopicDTO.body();
         this.user = user;
-        this.course = createTopicDTO.course();
+        this.course = course;
         this.status = TopicStatus.OPEN;
         this.creationDate = LocalDateTime.now();
         this.lastUpdated = LocalDateTime.now();
@@ -60,8 +67,21 @@ public class Topic {
         if (updateTopicDTO.status() != null) {
             this.status = updateTopicDTO.status();
         }
-        if (updateTopicDTO.course() != null) {
-            this.course = updateTopicDTO.course();
+        this.lastUpdated = LocalDateTime.now();
+    }
+
+    public void updateTopicWithCourse(UpdateTopicDTO updateTopicDTO, Course course) {
+        if (updateTopicDTO.title() != null) {
+            this.title = updateTopicDTO.title();
+        }
+        if (updateTopicDTO.body() != null) {
+            this.body = updateTopicDTO.body();
+        }
+        if (updateTopicDTO.status() != null) {
+            this.status = updateTopicDTO.status();
+        }
+        if (updateTopicDTO.courseID() != null) {
+            this.course = course;
         }
         this.lastUpdated = LocalDateTime.now();
     }
