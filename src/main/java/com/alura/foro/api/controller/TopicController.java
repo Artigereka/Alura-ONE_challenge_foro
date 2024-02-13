@@ -8,6 +8,7 @@ import com.alura.foro.api.domain.topic.TopicRepository;
 import com.alura.foro.api.domain.topic.UpdateTopicDTO;
 import com.alura.foro.api.domain.topic.validators.create.TopicValidService;
 import com.alura.foro.api.domain.user.UserRepository;
+import com.alura.foro.api.domain.user.User;
 import com.alura.foro.api.domain.course.Course;
 import com.alura.foro.api.domain.course.CourseRepository;
 import jakarta.transaction.Transactional;
@@ -52,9 +53,9 @@ public class TopicController {
     public ResponseEntity<TopicDetailsDTO> createTopic(@RequestBody @Valid CreateTopicDTO createTopicDTO, UriComponentsBuilder uriBuilder){
 
         validTopic.forEach(v -> v.isDuplicated(createTopicDTO));
-        var user = userRepository.findById(createTopicDTO.userID()).get();
-        var course = courseRepository.findById(createTopicDTO.courseID()).get();
-        var topic = new Topic(createTopicDTO, user, course);
+        User user = userRepository.findById(createTopicDTO.userID()).get();
+        Course course = courseRepository.findById(createTopicDTO.courseID()).get();
+        Topic topic = new Topic(createTopicDTO, user, course);
         topicRepository.save(topic);
 
         var uri = uriBuilder.path("/topics/{id}").buildAndExpand(topic.getId()).toUri();
