@@ -29,7 +29,7 @@ public class TokenService {
                     .withExpiresAt(generateExpiringDate())
                     .sign(algorithm);
         } catch (JWTCreationException e){
-            throw new RuntimeException();
+            throw new RuntimeException("Failed to generate token");
         }
     }
 
@@ -58,7 +58,7 @@ public class TokenService {
     }
 
     private Instant generateExpiringDate() {
-        return LocalDateTime.now().plusHours(2).toInstant(ZoneOffset.of("-05:00"));
+        return LocalDateTime.now().plusHours(6).toInstant(ZoneOffset.of("-05:00"));
     }
 
 }

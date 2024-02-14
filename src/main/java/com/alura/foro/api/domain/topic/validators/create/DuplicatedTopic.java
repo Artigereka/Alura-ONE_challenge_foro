@@ -7,17 +7,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class TopicValidator implements TopicValidService{
+public class DuplicatedTopic implements CreateTopicValidator {
 
     @Autowired
     private TopicRepository repository;
 
     @Override
-    public void isDuplicated(CreateTopicDTO topic) {
-        var duplicated = repository.existsByTitleAndBody(topic.title(), topic.body());
+    public void validate(CreateTopicDTO data) {
+        var duplicated = repository.existsByTitleAndBody(data.title(), data.body());
         if (duplicated){
             throw new ValidationException("This topic already exists. Check /topics/" +
-                    repository.findByTitle(topic.title()).getId());
+                    repository.findByTitle(data.title()).getId());
         }
     }
 }

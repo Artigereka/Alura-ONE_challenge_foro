@@ -1,5 +1,7 @@
 package com.alura.foro.api.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -21,6 +23,9 @@ import com.alura.foro.api.domain.answer.AnswerDetailsDTO;
 import com.alura.foro.api.domain.answer.AnswerRepository;
 import com.alura.foro.api.domain.answer.CreateAnswerDTO;
 import com.alura.foro.api.domain.answer.UpdateAnswerDTO;
+import com.alura.foro.api.domain.answer.validators.create.CreateAnswerValidator;
+import com.alura.foro.api.domain.answer.validators.update.UpdateAnswerValidator;
+import com.alura.foro.api.domain.topic.TopicStatus;
 import com.alura.foro.api.domain.topic.Topic;
 import com.alura.foro.api.domain.topic.TopicRepository;
 import com.alura.foro.api.domain.user.User;
@@ -42,11 +47,18 @@ public class AnswerController {
     @Autowired
     private AnswerRepository answerRepository;
 
+    @Autowired
+    List<CreateAnswerValidator> createValidators;
+
+    @Autowired
+    List<UpdateAnswerValidator> updateValidators;
+
     @PostMapping
     @Transactional
     public ResponseEntity<AnswerDetailsDTO> createAnswer(@RequestBody @Valid CreateAnswerDTO createAnswerDTO, UriComponentsBuilder uriBuilder) {
 
-        User user = userRepository.findById(createAnswerDTO.userId()).get();
+        createValidators.forEach(v -> v.validate(createAnswerDTO));
+        User user = userRepository.getReferenceById(createAnswerDTO.userId());
         Topic topic = topicRepository.findById(createAnswerDTO.topicId()).get();
 
         var answer = new Answer(createAnswerDTO, user, topic);
@@ -62,7 +74,7 @@ public class AnswerController {
         return ResponseEntity.ok(page);
     }
 
-    @GetMapping("/user/{userId}")
+    @GetMapping("/user/{username}")
     public ResponseEntity<Page<AnswerDetailsDTO>> readAnswersFromUser(@PageableDefault(size = 5, sort = {"lastUpdated"}, direction = Direction.DESC) Pageable pagination, @PathVariable Long userId) {
         var page = answerRepository.findAllByUserId(userId, pagination).map(AnswerDetailsDTO::new);
         return ResponseEntity.ok(page);
@@ -89,8 +101,16 @@ public class AnswerController {
     @PutMapping("/{id}")
     @Transactional
     public ResponseEntity<AnswerDetailsDTO> updateAnswer(@RequestBody @Valid UpdateAnswerDTO updateAnswerDTO, @PathVariable Long id) {
+
+        updateValidators.forEach(v -> v.validate(updateAnswerDTO, id));
         Answer answer = answerRepository.getReferenceById(id);
         answer.updateAnswer(updateAnswerDTO);
+
+        if (updateAnswerDTO.solution()) {
+            var solvedTopic = topicRepository.getReferenceById(answer.getTopic().getId());
+            solvedTopic.setStatus(TopicStatus.CLOSED);
+        }
+
         var answerData = new AnswerDetailsDTO(
                 answer.getId(),
                 answer.getBody(),

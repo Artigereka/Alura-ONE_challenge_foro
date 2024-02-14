@@ -1,5 +1,7 @@
 package com.alura.foro.api.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -20,6 +22,9 @@ import com.alura.foro.api.domain.user.UpdateUserDTO;
 import com.alura.foro.api.domain.user.User;
 import com.alura.foro.api.domain.user.UserDetailsDTO;
 import com.alura.foro.api.domain.user.UserRepository;
+import com.alura.foro.api.domain.user.validators.create.CreateUserValidator;
+import com.alura.foro.api.domain.user.validators.update.UpdateUserValidator;
+
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 @RestController
@@ -32,11 +37,18 @@ public class UserController {
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
 
+    @Autowired
+    List<CreateUserValidator> createValidators;
+
+    @Autowired
+    List<UpdateUserValidator> updateValidators;
+
     @PostMapping
     @Transactional
     public ResponseEntity<UserDetailsDTO> createUser(@RequestBody @Valid CreateUserDTO createUserDTO,
                                                      UriComponentsBuilder uriBuilder) {
 
+        createValidators.forEach(v -> v.validate(createUserDTO));
         String hashedPassword = passwordEncoder.encode(createUserDTO.password());
 
         User user = new User(createUserDTO, hashedPassword);
@@ -60,7 +72,7 @@ public class UserController {
         return ResponseEntity.ok(page);
     }
 
-    @GetMapping("/{username}")
+    @GetMapping("/username/{username}")
     public ResponseEntity<UserDetailsDTO> readSingleUser(@PathVariable String username) {
         User user = (User) repository.findByUsername(username);
         var userData = new UserDetailsDTO(
@@ -74,15 +86,35 @@ public class UserController {
         );
         return ResponseEntity.ok(userData);
     }
+
+    @GetMapping("/id/{id}")
+    public ResponseEntity<UserDetailsDTO> readSingleUser(@PathVariable Long id) {
+        User user = repository.getReferenceById(id);
+        var userData = new UserDetailsDTO(
+                user.getId(),
+                user.getUsername(),
+                user.getRole(),
+                user.getFirstName(),
+                user.getLastName(),
+                user.getEmail(),
+                user.getEnabled()
+        );
+        return ResponseEntity.ok(userData);
+    }
+
     @PutMapping("/{username}")
     @Transactional
     public ResponseEntity<UserDetailsDTO> updateUser(@RequestBody @Valid UpdateUserDTO updateUserDTO,
                                                      @PathVariable String username) {
+
+        updateValidators.forEach(v -> v.validate(updateUserDTO));
         User user = (User) repository.findByUsername(username);
+
         if (updateUserDTO.password() != null) {
             String hashedPassword = passwordEncoder.encode(updateUserDTO.password());
             user.updateUserWithPassword(updateUserDTO, hashedPassword);
-        } else {
+        }
+        else {
             user.updateUser(updateUserDTO);
         }
         var userData = new UserDetailsDTO(

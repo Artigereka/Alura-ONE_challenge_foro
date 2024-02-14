@@ -90,4 +90,8 @@ public class Topic {
         this.status = TopicStatus.DELETED;
     }
 
+    public void setStatus(TopicStatus status) {
+        this.status = status;
+    }
+
 }
