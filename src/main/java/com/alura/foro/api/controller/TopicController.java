@@ -16,6 +16,11 @@ import com.alura.foro.api.domain.user.UserRepository;
 import com.alura.foro.api.domain.user.User;
 import com.alura.foro.api.domain.course.Course;
 import com.alura.foro.api.domain.course.CourseRepository;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,7 +43,9 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.util.List;
 
 @RestController
-@RequestMapping("/topics")//Name of the table
+@RequestMapping("/topics")
+@SecurityRequirement(name = "bearer-key")
+@Tag(name = "Topic", description = "It's linked to a specific course and user")
 public class TopicController {
 
     @Autowired
@@ -61,6 +68,7 @@ public class TopicController {
 
     @PostMapping
     @Transactional
+    @Operation(summary = "Registers a new topic into the database")
     public ResponseEntity<TopicDetailsDTO> createTopic(@RequestBody @Valid CreateTopicDTO createTopicDTO, UriComponentsBuilder uriBuilder){
 
         createValidators.forEach(v -> v.validate(createTopicDTO));
@@ -75,6 +83,7 @@ public class TopicController {
     }
 
     @GetMapping("/all")
+    @Operation(summary = "Reads all topics regardless of their status")
     public ResponseEntity<Page<TopicDetailsDTO>> readAllTopics(
             @PageableDefault(size = 5, direction = Sort.Direction.DESC) Pageable pagination){
 
@@ -84,6 +93,7 @@ public class TopicController {
     }
 
     @GetMapping("/{id}/solution")
+    @Operation(summary = "Reads the topic's answer marked as its solution")
     public ResponseEntity<AnswerDetailsDTO> readTopicSolution(@PathVariable Long id) {
         Answer answer = answerRepository.getReferenceByTopicId(id);
 
@@ -103,6 +113,7 @@ public class TopicController {
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "Reads a single topic by its ID")
     public ResponseEntity<TopicDetailsDTO> readOneTopic(@PathVariable Long id){
 
         Topic topic = topicRepository.getReferenceById(id);
@@ -124,6 +135,7 @@ public class TopicController {
     }
 
     @GetMapping
+    @Operation(summary = "Lists open and closed topics")
     public ResponseEntity<Page<TopicDetailsDTO>> readNonDeletedTopics(@PageableDefault(size = 5, sort = {"lastUpdated"},
             direction = Direction.DESC) Pageable pagination) {
         var page = topicRepository.findAllByStatus(TopicStatus.DELETED,pagination).map(TopicDetailsDTO::new);
@@ -133,6 +145,7 @@ public class TopicController {
 
     @PutMapping("/{id}")
     @Transactional
+    @Operation(summary = "Updates a topic title, body, status or course ID")
     public ResponseEntity<TopicDetailsDTO> updateTopic(@RequestBody @Valid UpdateTopicDTO updateTopicDTO,
                                                        @PathVariable Long id) {
 
@@ -165,6 +178,7 @@ public class TopicController {
 
     @DeleteMapping("/{id}")
     @Transactional
+    @Operation(summary = "Deletes a topic")
     public ResponseEntity<?> deleteTopic(@PathVariable Long id) {
         Topic topic = topicRepository.getReferenceById(id);
         topic.deleteTopic();
